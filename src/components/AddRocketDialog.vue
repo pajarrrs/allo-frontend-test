@@ -108,27 +108,38 @@
 
   <v-snackbar
     v-model="snackbar"
-    color="success"
     location="top"
     :timeout="4000"
-    elevation="4"
-    rounded="lg"
+    color="surface"
+    elevation="8"
+    rounded="sm"
+    class="rocket-snackbar"
   >
-    <div class="d-flex align-center ga-3">
-      <v-icon icon="mdi-check-circle" size="24" />
-      <div>
-        <div class="font-weight-bold">Rocket added successfully!</div>
-        <div class="text-caption text-white opacity-90">
-          "{{ addedRocketName }}" has been added to the list.
+    <div class="d-flex align-center ga-3 py-1">
+      <div class="snackbar-badge d-flex align-center justify-center">
+        <v-icon
+          icon="mdi-check"
+          color="success"
+          size="18"
+        />
+      </div>
+      <div class="pr-2">
+        <div class="text-body-2 font-weight-bold text-high-emphasis">
+          Rocket added successfully
+        </div>
+        <div class="text-caption text-medium-emphasis">
+          <span class="text-high-emphasis font-weight-medium">"{{ addedRocketName }}"</span> has been added to the list.
         </div>
       </div>
     </div>
+
     <template #actions>
       <v-btn
         variant="text"
         icon="mdi-close"
         size="small"
-        color="white"
+        density="compact"
+        class="text-medium-emphasis"
         @click="snackbar = false"
       />
     </template>
@@ -201,3 +212,14 @@ function close() {
   dialog.value = false
 }
 </script>
+
+<style scoped>
+.snackbar-badge {
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+  background: rgba(155, 211, 143, 0.12);
+  border: 1px solid rgba(155, 211, 143, 0.35);
+  flex-shrink: 0;
+}
+</style>
