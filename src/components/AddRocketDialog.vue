@@ -23,6 +23,7 @@
       <v-card-text>
         <v-form
           ref="formRef"
+          validate-on="input lazy"
           @submit.prevent="submit"
         >
           <v-text-field
@@ -104,19 +105,49 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
+
+  <v-snackbar
+    v-model="snackbar"
+    color="success"
+    location="top"
+    :timeout="4000"
+    elevation="4"
+    rounded="lg"
+  >
+    <div class="d-flex align-center ga-3">
+      <v-icon icon="mdi-check-circle" size="24" />
+      <div>
+        <div class="font-weight-bold">Rocket added successfully!</div>
+        <div class="text-caption text-white opacity-90">
+          "{{ addedRocketName }}" has been added to the list.
+        </div>
+      </div>
+    </div>
+    <template #actions>
+      <v-btn
+        variant="text"
+        icon="mdi-close"
+        size="small"
+        color="white"
+        @click="snackbar = false"
+      />
+    </template>
+  </v-snackbar>
 </template>
 
 <script lang="ts" setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, watch, nextTick } from 'vue'
 import type { VForm } from 'vuetify/components'
 import { useRocketStore } from '@/stores/rocketStore'
 
 const store = useRocketStore()
 const dialog = ref(false)
+const snackbar = ref(false)
+const addedRocketName = ref('')
 const formRef = ref<VForm>()
 
 const rules = {
-  required: (v: string) => !!v?.trim() || 'Required',
+  required: (v: string) => (!!v && !!v.trim()) || 'Rocket Name is required',
   url: (v: string) => !v || /^https?:\/\/\S+$/.test(v.trim()) || 'Must be a valid http(s) URL',
   positiveNumber: (v: string) => !v || Number(v) >= 0 || 'Must be a positive number',
   countryCode: (v: string) => !v || /^[A-Za-z]{2,3}$/.test(v.trim()) || 'Use a 2–3 letter code',
@@ -135,24 +166,38 @@ const form = reactive(defaultForm())
 
 const toNullable = (value: string) => value.trim() || null
 
+watch(dialog, (isOpen) => {
+  if (!isOpen) {
+    setTimeout(() => {
+      Object.assign(form, defaultForm())
+      nextTick(() => {
+        formRef.value?.resetValidation()
+      })
+    }, 250)
+  }
+})
+
 async function submit() {
-  const { valid } = await formRef.value!.validate()
-  if (!valid) return
+  const result = await formRef.value?.validate()
+  if (!result?.valid) return
+
+  const rocketName = form.name.trim()
 
   store.addRocket({
-    name: form.name.trim(),
+    name: rocketName,
     description: toNullable(form.description),
     imageUrl: toNullable(form.imageUrl),
     launchCost: toNullable(String(form.launchCost)),
     countryCode: toNullable(form.countryCode)?.toUpperCase() ?? null,
     maidenFlight: toNullable(form.maidenFlight),
   })
+
+  addedRocketName.value = rocketName
+  snackbar.value = true
   close()
 }
 
 function close() {
   dialog.value = false
-  Object.assign(form, defaultForm())
-  formRef.value?.resetValidation()
 }
 </script>
